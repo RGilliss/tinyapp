@@ -54,6 +54,10 @@ app.post("/urls", (req, res) => {
   res.redirect("/urls/:shortURL");
 });
 
+app.post("/urls/:shortURL/delete", (req, res) => {
+  
+});
+
 function generateRandomString() {
   let shortened = "";
   const alphanum = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
