@@ -6,6 +6,9 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 app.set("view engine", "ejs");
 
+
+
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -43,6 +46,14 @@ app.post("/urls", (req, res) => {
   res.send("Ok");
 });
 
+function generateRandomString() {
+  let shortened = "";
+  const alphanum = 'abcdefghijklmnopqrstuvwxyz0123456789'
+  for (let i = 0; i <= 5; i++) {
+    shortened += alphanum.charAt(Math.floor(Math.random() * alphanum.length));
+  }
+  return shortened;
+}
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
