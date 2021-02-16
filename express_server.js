@@ -42,13 +42,16 @@ app.get("/hello", (req, res) => {
 
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);
+  let newShortURL = generateRandomString();
+  let newLong = req.body.longURL;
+  urlDatabase[newShortURL] = newLong;
+  console.log(urlDatabase);
   res.send("Ok");
 });
 
 function generateRandomString() {
   let shortened = "";
-  const alphanum = 'abcdefghijklmnopqrstuvwxyz0123456789'
+  const alphanum = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
   for (let i = 0; i <= 5; i++) {
     shortened += alphanum.charAt(Math.floor(Math.random() * alphanum.length));
   }
