@@ -20,7 +20,7 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
-  res.render("urls_index", templateVars)
+  res.render("urls_index", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -56,7 +56,7 @@ app.post("/urls", (req, res) => {
 
 function generateRandomString() {
   let shortened = "";
-  const alphanum = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+  const alphanum = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   for (let i = 0; i <= 5; i++) {
     shortened += alphanum.charAt(Math.floor(Math.random() * alphanum.length));
   }
