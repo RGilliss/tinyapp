@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -25,28 +26,42 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 
 //
-// GET
+// CREATE
 //
 
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+//Initialize templateVars in urls_index
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 
+//Initialize templateVars in urls_show
 app.get("/urls/:shortURL", (req, res) => {
-  const eachShortURL = Object.keys(urlDatabase)[Object.keys(urlDatabase).length - 1];
-  const templateVars = { shortURL: eachShortURL, longURL: req.params.longURL};
+  const templateVars = { shortURL: req.params.shortURL, longURL: ''};
+  for (const shortURL in urlDatabase) {
+    if (templateVars.shortURL === shortURL) {
+      templateVars.longURL = urlDatabase[shortURL];
+    } else {
+      templateVars.longURL = 'No Related Long URL'
+    }
+  }
   res.render("urls_show", templateVars);
 });
 
+//Redirect to longURL
 app.get("/u/:shortURL", (req, res) => {
   const longURL = Object.values(urlDatabase)[Object.values(urlDatabase).length - 1];
+  // const longURL = urlDatabase.shortURL
   res.redirect(longURL);
 });
+
+//
+//Part of Initial Set Up
+//
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -61,9 +76,16 @@ app.get("/hello", (req, res) => {
 });
 
 //
-//  POST
+// READ
 //
 
+
+
+//
+//  UPDATE
+//
+
+//Generates intial shortURL
 app.post("/urls", (req, res) => {
   let newShortURL = generateRandomString();
   let newLong = req.body.longURL;
@@ -71,13 +93,8 @@ app.post("/urls", (req, res) => {
   res.redirect("/urls/:shortURL");
 });
 
-app.post("/urls/:shortURL/delete", (req, res) => { 
-  const {shortURL} = req.params;
-  delete urlDatabase[shortURL];
-  res.redirect("/urls");
-});
-
-app.post("/urls_show", (req, res) => { 
+//Resets shortURL for given longURL
+app.post("/urls/:shortURL", (req, res) => { 
   const {longURL} = req.body;
   const newKey = generateRandomString()
   for (let shortURL in urlDatabase) {
@@ -90,10 +107,22 @@ app.post("/urls_show", (req, res) => {
   res.redirect("/urls");
 });
 
+//Redirects from edit to :shortURL
 app.post('/urls/:shortURL/edit', (req, res) => {
   res.redirect('/urls/:shortURL')
 });
 
+//
+// DELETE
+//
+
+app.post("/urls/:shortURL/delete", (req, res) => { 
+  const {shortURL} = req.params;
+  delete urlDatabase[shortURL];
+  res.redirect("/urls");
+});
+
+
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  console.log(`Tiny app listening on port ${PORT}!`);
 });
