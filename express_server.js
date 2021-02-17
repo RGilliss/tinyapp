@@ -110,11 +110,10 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${newShortURL}`);
 });
 
-//Resets shortURL for given longURL
+//Resets longURL for given shortURL
 app.post("/urls/:shortURL", (req, res) => { 
-  let shortURL = req.params.shortURL
-  urlDatabase[shortURL] = req.body.longURL
-  
+  let shortURL = req.params.shortURL;
+  urlDatabase[shortURL] = req.body.longURL;
   res.redirect(`/urls`);
 });
 
