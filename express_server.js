@@ -3,6 +3,19 @@ const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser')
+//
+// MIDDLEWARE
+//
+
+app.use(cookieParser());
+
+app.use(bodyParser.urlencoded({extended: true}));
+
+app.set("view engine", "ejs");
+
+//
+// FUNCTIONS AND DATABASE
+//
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -18,31 +31,34 @@ function generateRandomString() {
   return shortened;
 }
 
-//
-// MIDDLEWARE
-//
-
-app.use(bodyParser.urlencoded({extended: true}));
-
-app.set("view engine", "ejs");
 
 //
 // CREATE
 //
 
 app.get("/urls/new", (req, res) => {
+  const templateVars = {
+    username: req.cookies['username']
+  }
   res.render("urls_new");
 });
 
 //Initialize templateVars in urls_index
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { 
+    urls: urlDatabase,
+    username: req.cookies['username'],
+  };
   res.render("urls_index", templateVars);
 });
 
 //Initialize templateVars in urls_show
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: ''};
+  const templateVars = { 
+    shortURL: req.params.shortURL, 
+    longURL: '',
+    username: req.cookies['username'],
+  };
   for (const shortURL in urlDatabase) {
     if (templateVars.shortURL === shortURL) {
       templateVars.longURL = urlDatabase[shortURL];

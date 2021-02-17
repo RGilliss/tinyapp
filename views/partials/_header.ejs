@@ -8,12 +8,12 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-        <form method="POST" action="/login">
-          <input class="form-control" type="text" name="username" placeholder="sign in"
-              style="width: 300px; margin: 1em; margin-left: 350px;">
-          <button type="submit" style="margin-left: 250px;" class="btn btn-primary">Login</button>
-        </form>
       </div>
     </div>
+    <form method="POST" action="/login">
+      <button type="submit" style="margin-left: 350px;" class="btn btn-primary">Login</button>
+      <input class="form-control" type="text" name="username" placeholder="sign in"
+      style="width: 300px; margin: 1em;">
+    </form>
   </nav>
 </header>
