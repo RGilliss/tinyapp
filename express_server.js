@@ -116,7 +116,7 @@ app.post('/urls/:shortURL/edit', (req, res) => {
 
 //sets cookie to username
 app.post('/login', (req, res) => {
-  res.cookie(req.body.username);
+  res.cookie('username', req.body.username);
   res.redirect(`/urls`);
 });
 
