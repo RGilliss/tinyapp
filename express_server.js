@@ -40,7 +40,7 @@ app.get("/urls/new", (req, res) => {
   const templateVars = {
     username: req.cookies['username']
   }
-  res.render("urls_new");
+  res.render("urls_new", templateVars);
 });
 
 //Initialize templateVars in urls_index
@@ -112,15 +112,9 @@ app.post("/urls", (req, res) => {
 
 //Resets shortURL for given longURL
 app.post("/urls/:shortURL", (req, res) => { 
-  const {longURL} = req.body;
-  const newKey = generateRandomString()
-  for (let shortURL in urlDatabase) {
-    if (urlDatabase[shortURL] === longURL) {
-      urlDatabase[shortURL] = urlDatabase[newKey];
-      urlDatabase[newKey] = longURL;
-      delete urlDatabase[shortURL];
-    };
-  }
+  let shortURL = req.params.shortURL
+  urlDatabase[shortURL] = req.body.longURL
+  
   res.redirect(`/urls`);
 });
 
@@ -134,6 +128,11 @@ app.post('/urls/:shortURL/edit', (req, res) => {
 app.post('/login', (req, res) => {
   res.cookie('username', req.body.username);
   res.redirect(`/urls`);
+});
+
+app.post('/logout', (req, res) => {
+  res.clearCookie('username', req.body.username);
+  res.redirect(`/urls`)
 });
 
 //
@@ -150,3 +149,16 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Tiny app listening on port ${PORT}!`);
 });
+
+
+
+// const {replacementLongURL} = req.body;
+// const newKey = generateRandomString()
+// for (let shortURL in urlDatabase) {
+  // console.log(urlDatabase[shortURL])
+  // if (urlDatabase[shortURL] === longURL) {
+//     urlDatabase[shortURL] = urlDatabase[newKey];
+//     urlDatabase[newKey] = longURL;
+//     delete urlDatabase[shortURL];
+  // };
+// }
