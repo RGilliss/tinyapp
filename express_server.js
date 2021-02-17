@@ -88,6 +88,10 @@ app.get("/register", (req, res) => {
   res.render("urls_register")
 })
 
+app.get("/login", (req, res) => {
+  res.render("urls_login")
+});
+
 //Initialize templateVars in urls_show
 app.get("/urls/:shortURL", (req, res) => {
   let id = req.cookies.user_id;
@@ -147,6 +151,10 @@ app.post("/register", (req, res) => {
     res.cookie('user_id', newUser);
     res.redirect("/urls");
   }
+});
+
+app.post("/login", (req, res) => {
+  res.redirect("/urls")
 });
 
 //Generates intial shortURL
