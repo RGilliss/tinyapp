@@ -45,6 +45,7 @@ app.get("/urls/:shortURL", (req, res) => {
   for (const shortURL in urlDatabase) {
     if (templateVars.shortURL === shortURL) {
       templateVars.longURL = urlDatabase[shortURL];
+      break;
     } else {
       templateVars.longURL = 'No Related Long URL'
     }
@@ -53,11 +54,10 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 //Redirect to longURL
-app.get("/u/:shortURL", (req, res) => {
-  const longURL = Object.values(urlDatabase)[Object.values(urlDatabase).length - 1];
-  // const longURL = urlDatabase.shortURL
-  res.redirect(longURL);
-});
+// app.get("/u/:shortURL", (req, res) => {
+//   const longURL = req.params;
+//   res.redirect(longURL);
+// });
 
 //
 //Part of Initial Set Up
@@ -90,7 +90,7 @@ app.post("/urls", (req, res) => {
   let newShortURL = generateRandomString();
   let newLong = req.body.longURL;
   urlDatabase[newShortURL] = newLong;
-  res.redirect("/urls/:shortURL");
+  res.redirect(`/urls/${newShortURL}`);
 });
 
 //Resets shortURL for given longURL
@@ -104,12 +104,13 @@ app.post("/urls/:shortURL", (req, res) => {
       delete urlDatabase[shortURL];
     };
   }
-  res.redirect("/urls");
+  res.redirect(`/urls`);
 });
 
 //Redirects from edit to :shortURL
 app.post('/urls/:shortURL/edit', (req, res) => {
-  res.redirect('/urls/:shortURL')
+  const shortURL = req.params.shortURL
+  res.redirect(`/urls/${shortURL}`)
 });
 
 //
