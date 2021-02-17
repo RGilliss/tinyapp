@@ -149,16 +149,3 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Tiny app listening on port ${PORT}!`);
 });
-
-
-
-// const {replacementLongURL} = req.body;
-// const newKey = generateRandomString()
-// for (let shortURL in urlDatabase) {
-  // console.log(urlDatabase[shortURL])
-  // if (urlDatabase[shortURL] === longURL) {
-//     urlDatabase[shortURL] = urlDatabase[newKey];
-//     urlDatabase[newKey] = longURL;
-//     delete urlDatabase[shortURL];
-  // };
-// }
