@@ -40,8 +40,22 @@ function generateRandomString() {
     shortened += alphanum.charAt(Math.floor(Math.random() * alphanum.length));
   }
   return shortened;
-}
+};
 
+function emailLookUp(email) {
+  for (const key in users) {
+    for (const nestedKey in users[key]) {
+      if (nestedKey === 'email') {
+        if (email === users[key][nestedKey]) {
+          return true;
+        } else {
+        }
+      }
+    }
+  }
+};
+
+//emailLookUp(req.body.email)
 //
 // GET
 //
@@ -54,7 +68,6 @@ app.get("/", (req, res) => {
 //Render urls_index page (/urls) with templateVars in urls_index
 app.get("/urls", (req, res) => {
   let id = req.cookies.user_id;
-  console.log(users[id]);
   const templateVars = { 
     urls: urlDatabase,
     user: users[id],
@@ -65,11 +78,9 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   let id = req.cookies.user_id;
-  console.log(users[id]);
   const templateVars = {
     user: users.id
   }
-  // console.log(templateVars.user)
   res.render("urls_new", templateVars);
 });
 
@@ -80,7 +91,7 @@ app.get("/register", (req, res) => {
 //Initialize templateVars in urls_show
 app.get("/urls/:shortURL", (req, res) => {
   let id = req.cookies.user_id;
-  console.log(users[id]);
+  // console.log(users[id]);
   const templateVars = { 
     shortURL: req.params.shortURL, 
     longURL: '',
@@ -125,11 +136,19 @@ app.get("/hello", (req, res) => {
 
 //Registers a new user
 app.post("/register", (req, res) => {
-  const newUser = generateRandomString()
-  users[newUser] = {id: newUser, email: req.body.email, password: req.body.password};
-  res.cookie('user_id', newUser);
-  res.redirect("/urls");
+  const email = req.body.email;
+  const password = req.body.password
+  if (email === "" || password === "" || emailLookUp(email)) {
+    res.send('400 Bad Request');
+    res.redirect("/register");
+  } else {
+    const newUser = generateRandomString()
+    users[newUser] = {id: newUser, email: email, password: password};
+    res.cookie('user_id', newUser);
+    res.redirect("/urls");
+  }
 });
+
 //Generates intial shortURL
 app.post("/urls", (req, res) => {
   let newShortURL = generateRandomString();
