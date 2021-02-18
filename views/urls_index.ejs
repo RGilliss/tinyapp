@@ -32,7 +32,7 @@
                 <%= url %>
               </td>
               <td>                              
-                  <%= Object.values(urls) %>
+                  <%= urls[url].longURL %>
               </td>
               <td>
                 <form method="POST" action="/urls/<%= url %>/delete">
