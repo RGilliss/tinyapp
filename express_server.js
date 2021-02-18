@@ -28,9 +28,16 @@ const users = {
   }
 }
 
+/*
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
+};
+*/
+
+const urlDatabase = {
+  "b2xVn2": { longURL: 'http://www.lighthouselabs.ca', userID: 'shF3nf'},
+  "9sm5xK": { longURL: 'http://www.google.com', userID: 'KJdh3n' }
 };
 
 function generateRandomString() {
@@ -78,11 +85,15 @@ app.get("/urls", (req, res) => {
 
 
 app.get("/urls/new", (req, res) => {
-  let id = req.cookies.user_id;
-  const templateVars = {
-    user: users[id]
+  if(req.cookies.user_id) {
+    let id = req.cookies.user_id;
+    const templateVars = {
+      user: users[id]
+    }
+    res.render("urls_new", templateVars);
+  } else {
+    res.redirect("/login");
   }
-  res.render("urls_new", templateVars);
 });
 
 app.get("/register", (req, res) => {
@@ -123,11 +134,11 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 //Redirect to longURL
-//NEED TO FIX
-// app.get("/u/:shortURL", (req, res) => {
-//   const longURL = req.params;
-//   res.redirect(longURL);
-// });
+app.get("/u/:shortURL", (req, res) => {
+  const urlObj = req.params.shortURL;
+  const longURL = urlDatabase[urlObj].longURL;
+  res.redirect(longURL);
+});
 
 //
 //Part of Initial Set Up
@@ -162,6 +173,7 @@ app.post("/register", (req, res) => {
   }
 });
 
+//Login an existing user
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
@@ -180,14 +192,16 @@ app.post("/login", (req, res) => {
 app.post("/urls", (req, res) => {
   let newShortURL = generateRandomString();
   let newLong = req.body.longURL;
-  urlDatabase[newShortURL] = newLong;
+  urlDatabase[newShortURL] = { longURL: newLong, userID: req.cookies.user_id};
   res.redirect(`/urls/${newShortURL}`);
 });
 
 //Resets longURL for given shortURL
 app.post("/urls/:shortURL", (req, res) => { 
   let shortURL = req.params.shortURL;
-  urlDatabase[shortURL] = req.body.longURL;
+  let newLong = req.body.longURL;
+  urlDatabase[shortURL] = { longURL: newLong, userID: req.cookies.user_id};;
+  console.log(urlDatabase);
   res.redirect(`/urls`);
 });
 
