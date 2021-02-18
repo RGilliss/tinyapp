@@ -59,7 +59,7 @@ const generateRandomString = function () {
   return shortened;
 }
 
-const emailLookUp = function (email) {
+const emailLookUp = function (email, users) {
   for (const id in users) {
     for (const userInfo in users[id]) {
       if (userInfo === 'email') {
@@ -194,7 +194,7 @@ app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   const hashedPassword = bcrypt.hashSync(password, 10)
-  if (email === "" || password === "" || emailLookUp(email)) {
+  if (email === "" || password === "" || emailLookUp(email, users)) {
     res.send('400 Bad Request');
     res.redirect('/register');
   } else {
@@ -209,10 +209,10 @@ app.post('/register', (req, res) => {
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  const user = emailLookUp(email);
+  const user = emailLookUp(email, users);
   const id = user.id;
   const hashedPassword = users[id].password;
-  if (emailLookUp(email) && bcrypt.compareSync(password, hashedPassword)) {
+  if (emailLookUp(email, users) && bcrypt.compareSync(password, hashedPassword)) {
     // res.cookie('user_id', id);
     req.session.user_id = id;
     res.redirect("/urls");
