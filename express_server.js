@@ -1,9 +1,10 @@
 const express = require('express');
-const app = express();
-const PORT = 8080; // default port 8080
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const cookieSession = require('cookie-session');
+const { emailLookUp } = require('./helpers.js')
+const app = express();
+const PORT = 8080; // default port 8080
 // const cookieParser = require('cookie-parser');
 
 //
@@ -30,14 +31,10 @@ const users = {
   }
 };
 
-
-
-
 const urlDatabase = {
   'b2xVn2': { longURL: 'http://www.lighthouselabs.ca', userID: 'shF3nf'},
   '9sm5xK': { longURL: 'http://www.google.com', userID: 'p1Tty' }
 };
-
 
 const urlsForUser = function(id) {
   let userURLs = {};
@@ -57,19 +54,6 @@ const generateRandomString = function () {
     shortened += alphanum.charAt(Math.floor(Math.random() * alphanum.length));
   }
   return shortened;
-}
-
-const emailLookUp = function (email, users) {
-  for (const id in users) {
-    for (const userInfo in users[id]) {
-      if (userInfo === 'email') {
-        if (email === users[id][userInfo]) {
-          return users[id];
-        }
-      }
-    }
-  }
-  return false;
 }
 
 //
@@ -196,7 +180,7 @@ app.post('/register', (req, res) => {
   const hashedPassword = bcrypt.hashSync(password, 10)
   if (email === "" || password === "" || emailLookUp(email, users)) {
     res.send('400 Bad Request');
-    res.redirect('/register');
+    // res.redirect('/register');
   } else {
     const id = generateRandomString();
     users[id] = {id: id, email: email, password: hashedPassword};
@@ -253,3 +237,4 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Tiny app listening on port ${PORT}!`);
 });
+
