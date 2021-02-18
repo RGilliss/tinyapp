@@ -2,15 +2,20 @@ const express = require('express');
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
+const cookieSession = require('cookie-session');
+// const cookieParser = require('cookie-parser');
 
 //
 // MIDDLEWARE
 //
 
-app.use(cookieParser());
+// app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2']
+}));
 app.set('view engine', 'ejs');
 
 //
@@ -30,7 +35,7 @@ const users = {
 
 const urlDatabase = {
   'b2xVn2': { longURL: 'http://www.lighthouselabs.ca', userID: 'shF3nf'},
-  '9sm5xK': { longURL: 'http://www.google.com', userID: 'KJdh3n' }
+  '9sm5xK': { longURL: 'http://www.google.com', userID: 'p1Tty' }
 };
 
 
@@ -72,7 +77,7 @@ const emailLookUp = function (email) {
 //
 
 app.get('/', (req, res) => {
-  if (req.cookies.user_id) {
+  if (req.session.user_id) {
     res.redirect('/urls');
   } else {
     res.redirect('/login');
@@ -80,8 +85,8 @@ app.get('/', (req, res) => {
 });
 
 app.get('/urls', (req, res) => {
-  if (req.cookies.user_id) {
-    let id = req.cookies.user_id;
+  if (req.session.user_id) {
+    let id = req.session.user_id;
     const templateVars = {
       urls: urlsForUser(id),
       user: users[id],
@@ -93,8 +98,8 @@ app.get('/urls', (req, res) => {
 });
 
 app.get('/urls/new', (req, res) => {
-  if (req.cookies.user_id) {
-    let id = req.cookies.user_id;
+  if (req.session.user_id) {
+    let id = req.session.user_id;
     const templateVars = {
       urls: urlsForUser(id),
       user: users[id]
@@ -106,7 +111,7 @@ app.get('/urls/new', (req, res) => {
 });
 
 app.get('/register', (req, res) => {
-  let id = req.cookies.user_id;
+  let id = req.session.user_id;
   const templateVars = {
     urls: urlsForUser(id),
     user: users[id]
@@ -115,7 +120,7 @@ app.get('/register', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-  let id = req.cookies.user_id;
+  let id = req.session.user_id;
   const templateVars = {
     urls: urlsForUser(id),
     user: users[id]
@@ -134,8 +139,8 @@ app.get('/urls.json', (req, res) => {
 
 //Initialize templateVars in urls_show
 app.get('/urls/:shortURL', (req, res) => {
-  if (req.cookies.user_id) {
-    const id = req.cookies.user_id;
+  if (req.session.user_id) {
+    const id = req.session.user_id;
     const shortURL = req.params.shortURL
     const templateVars = {
       shortURL: shortURL,
@@ -149,7 +154,7 @@ app.get('/urls/:shortURL', (req, res) => {
 });
 
 app.get('/u/:shortURL', (req, res) => {
-  const id = req.cookies.user_id;
+  const id = req.session.user_id;
   const shortURL = req.params.shortURL;
   const userDatabase = urlsForUser(id)
   const longURL = userDatabase[shortURL].longURL;
@@ -167,12 +172,12 @@ app.get('*', (req, res) => {
 app.post('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   let newLong = req.body.longURL;
-  urlDatabase[shortURL] = { longURL: newLong, userID: req.cookies.user_id};
+  urlDatabase[shortURL] = { longURL: newLong, userID: req.session.user_id};
   res.redirect('/urls');
 });
 
 app.post('/urls/:shortURL/edit', (req, res) => {
-  if (req.cookies.user_id) {
+  if (req.session.user_id) {
     const shortURL = req.params.shortURL;
     res.redirect(`/urls/${shortURL}`);
   } else {
@@ -193,10 +198,9 @@ app.post('/register', (req, res) => {
     res.send('400 Bad Request');
     res.redirect('/register');
   } else {
-    const newUser = generateRandomString();
-    users[newUser] = {id: newUser, email: email, password: hashedPassword};
-    console.log(users);
-    res.cookie('user_id', newUser);
+    const id = generateRandomString();
+    users[id] = {id: id, email: email, password: hashedPassword};
+    req.session.user_id = id;
     res.redirect('/urls');
   }
 });
@@ -209,7 +213,8 @@ app.post('/login', (req, res) => {
   const id = user.id;
   const hashedPassword = users[id].password;
   if (emailLookUp(email) && bcrypt.compareSync(password, hashedPassword)) {
-    res.cookie('user_id', id);
+    // res.cookie('user_id', id);
+    req.session.user_id = id;
     res.redirect("/urls");
   } else {
     res.send('403 Forbidden Client');
@@ -221,13 +226,12 @@ app.post('/login', (req, res) => {
 app.post('/urls', (req, res) => {
   let shortURL = generateRandomString();
   let newLong = req.body.longURL;
-  urlDatabase[shortURL] = { longURL: newLong, userID: req.cookies.user_id};
+  urlDatabase[shortURL] = { longURL: newLong, userID: req.session.user_id};
   res.redirect(`/urls/${shortURL}`);
 });
 
 app.post('/logout', (req, res) => {
-  let id = req.cookies.user_id;
-  res.clearCookie('user_id', id);
+  req.session = null;
   res.redirect('/login');
 });
 
@@ -236,7 +240,7 @@ app.post('/logout', (req, res) => {
 //
 
 app.post('/urls/:shortURL/delete', (req, res) => {
-  if (req.cookies.user_id) {
+  if (req.session.user_id) {
     const {shortURL} = req.params;
     delete urlDatabase[shortURL];
     res.redirect('/urls');
