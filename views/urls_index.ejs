@@ -31,12 +31,8 @@
                 <a href = <%= urls[url].longURL %> </a>
                 <%= url %>
               </td>
-              <td>
-                
-                <% if (urls[url].userID === user.id) { %>
-                  <%= urls[url].longURL %>
-
-                <%}%>
+              <td>                              
+                  <%= Object.values(urls) %>
               </td>
               <td>
                 <form method="POST" action="/urls/<%= url %>/delete">
