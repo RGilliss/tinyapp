@@ -16,13 +16,13 @@ app.set("view engine", "ejs");
 //
 
 const users = {
-  someLady: {
-    id: "someLady33",
-    email: "lady.s@example.ca",
+  shF3nf: {
+    id: "shF3nf",
+    email: "lilo@dm.ca",
     password: "qwerty"
   }, 
-  someGuy: {
-    id: "someGuy99",
+  KJdh3n: {
+    id: "KJdh3n",
     email: "someGuy99@mail.net",
     password: "upupandaway"
   }
@@ -47,13 +47,14 @@ function emailLookUp(email) {
     for (const nestedKey in users[key]) {
       if (nestedKey === 'email') {
         if (email === users[key][nestedKey]) {
-          return true;
-        } else {
-        }
+          return users[key];
+        } 
       }
     }
   }
+  return false;
 };
+
 
 //emailLookUp(req.body.email)
 //
@@ -79,17 +80,25 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   let id = req.cookies.user_id;
   const templateVars = {
-    user: users.id
+    user: users[id]
   }
   res.render("urls_new", templateVars);
 });
 
 app.get("/register", (req, res) => {
-  res.render("urls_register")
+  let id = req.cookies.user_id;
+  const templateVars = {
+    user: users[id]
+  }
+  res.render("urls_register", templateVars)
 })
 
 app.get("/login", (req, res) => {
-  res.render("urls_login")
+  let id = req.cookies.user_id;
+  const templateVars = {
+    user: users[id]
+  }
+  res.render("urls_login", templateVars)
 });
 
 //Initialize templateVars in urls_show
@@ -154,7 +163,17 @@ app.post("/register", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  res.redirect("/urls")
+  const email = req.body.email;
+  const password = req.body.password;
+  const user = emailLookUp(email);
+  const id = user.id
+  if (emailLookUp(email) && user.password === password) {
+    res.cookie('user_id', id);
+    res.redirect("/urls");
+  } else {
+    res.send('403 Forbidden Client');
+    res.redirect("/register");
+  }
 });
 
 //Generates intial shortURL
@@ -185,16 +204,11 @@ app.post('/urls/:shortURL/edit', (req, res) => {
   res.redirect(`/urls/${shortURL}`)
 });
 
-//sets cookie to username
-// app.post('/login', (req, res) => {
-//   res.cookie('user_id', req.body.users);
-//   res.redirect(`/urls`);
-// });
 
 app.post('/logout', (req, res) => {
   let id = req.cookies.user_id;
   res.clearCookie('user_id', id);
-  res.redirect(`/urls`)
+  res.redirect(`/login`)
 });
 
 
