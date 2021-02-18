@@ -3,6 +3,7 @@ const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
 
 //
 // MIDDLEWARE
@@ -17,17 +18,14 @@ app.set('view engine', 'ejs');
 //
 
 const users = {
-  shF3nf: {
-    id: 'shF3nf',
+  p1Tty: {
+    id: 'p1Tty',
     email: 'lilo@dm.ca',
-    password: 'qwerty'
-  },
-  KJdh3n: {
-    id: 'KJdh3n',
-    email: 'sg99@mail.net',
-    password: '12345'
+    password: '$2b$10$rhOYhikjPYXzQ5..B2wEyO0tWbHXD8SlVqKIiGiKjsaPTS7nIxMiG' //qwerty
   }
 };
+
+
 
 
 const urlDatabase = {
@@ -47,7 +45,7 @@ const urlsForUser = function(id) {
   return userURLs;
 };
 
-generateRandomString = function () {
+const generateRandomString = function () {
   let shortened = "";
   const alphanum = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   for (let i = 0; i <= 5; i++) {
@@ -56,7 +54,7 @@ generateRandomString = function () {
   return shortened;
 }
 
-emailLookUp = function (email) {
+const emailLookUp = function (email) {
   for (const id in users) {
     for (const userInfo in users[id]) {
       if (userInfo === 'email') {
@@ -190,12 +188,14 @@ app.post('/urls/:shortURL/edit', (req, res) => {
 app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10)
   if (email === "" || password === "" || emailLookUp(email)) {
     res.send('400 Bad Request');
     res.redirect('/register');
   } else {
     const newUser = generateRandomString();
-    users[newUser] = {id: newUser, email: email, password: password};
+    users[newUser] = {id: newUser, email: email, password: hashedPassword};
+    console.log(users);
     res.cookie('user_id', newUser);
     res.redirect('/urls');
   }
@@ -207,7 +207,8 @@ app.post('/login', (req, res) => {
   const password = req.body.password;
   const user = emailLookUp(email);
   const id = user.id;
-  if (emailLookUp(email) && user.password === password) {
+  const hashedPassword = users[id].password;
+  if (emailLookUp(email) && bcrypt.compareSync(password, hashedPassword)) {
     res.cookie('user_id', id);
     res.redirect("/urls");
   } else {
