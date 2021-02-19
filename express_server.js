@@ -2,17 +2,16 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const cookieSession = require('cookie-session');
-const { emailLookUp } = require('./helpers.js')
+const { emailLookUp } = require('./helpers.js');
 const app = express();
 const PORT = 8080; // default port 8080
-// const cookieParser = require('cookie-parser');
+
 
 //
 // MIDDLEWARE
 //
 
-// app.use(cookieParser());
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieSession({
   name: 'session',
   keys: ['key1', 'key2']
@@ -32,29 +31,29 @@ const users = {
 };
 
 const urlDatabase = {
-  'b2xVn2': { longURL: 'http://www.lighthouselabs.ca', userID: 'shF3nf'},
+  'b2xVn2': { longURL: 'http://www.lighthouselabs.ca', userID: 'shF3nf' },
   '9sm5xK': { longURL: 'http://www.google.com', userID: 'p1Tty' }
 };
 
 const urlsForUser = function(id) {
   let userURLs = {};
   for (let userID in urlDatabase) {
-    const dataID = urlDatabase[userID].userID
-    if(dataID === id) {
+    const dataID = urlDatabase[userID].userID;
+    if (dataID === id) {
       userURLs[userID] = urlDatabase[userID];
     }
   }
   return userURLs;
 };
 
-const generateRandomString = function () {
+const generateRandomString = function() {
   let shortened = "";
   const alphanum = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   for (let i = 0; i <= 5; i++) {
     shortened += alphanum.charAt(Math.floor(Math.random() * alphanum.length));
   }
   return shortened;
-}
+};
 
 //
 // BROWSE
@@ -63,8 +62,11 @@ const generateRandomString = function () {
 app.get('/', (req, res) => {
   if (req.session.user_id) {
     res.redirect('/urls');
-  } else {
+    return;
+  }
+  if (!req.session.user_id) {
     res.redirect('/login');
+    return;
   }
 });
 
@@ -76,8 +78,11 @@ app.get('/urls', (req, res) => {
       user: users[id],
     };
     res.render('urls_index', templateVars);
-  } else {
-    res.send('Please login or register');
+    return;
+  }
+  if (!req.session.user_id) {
+    res.redirect('/noaccount');
+    return;
   }
 });
 
@@ -89,8 +94,11 @@ app.get('/urls/new', (req, res) => {
       user: users[id]
     };
     res.render('urls_new', templateVars);
-  } else {
+    return;
+  }
+  if (!req.session.user_id) {
     res.redirect('/login');
+    return;
   }
 });
 
@@ -121,33 +129,63 @@ app.get('/urls.json', (req, res) => {
 //READ
 //
 
-//Initialize templateVars in urls_show
 app.get('/urls/:shortURL', (req, res) => {
   if (req.session.user_id) {
     const id = req.session.user_id;
-    const shortURL = req.params.shortURL
+    const shortURL = req.params.shortURL;
     const templateVars = {
       shortURL: shortURL,
       urls: urlsForUser(id),
       user: users[id],
     };
-    res.render('urls_show', templateVars);
-  } else {
-    res.send('Please login or register');
+    for (const eachURL in templateVars.urls) {
+      if (eachURL === shortURL) {
+        res.render('urls_show', templateVars);
+        return;
+      }
+    }
+    res.redirect('/noaccount');
+    return;
+      
+  }
+  if (!req.session.user_id) {
+    res.redirect('/noaccount');
+    return;
   }
 });
 
 app.get('/u/:shortURL', (req, res) => {
-  const id = req.session.user_id;
   const shortURL = req.params.shortURL;
-  const userDatabase = urlsForUser(id)
-  const longURL = userDatabase[shortURL].longURL;
-  res.redirect(longURL);
+  for (let url in urlDatabase) {
+    if (url === shortURL) {
+      const longURL = urlDatabase[shortURL].longURL;
+      res.redirect(longURL);
+    }
+  }
+  res.redirect('/noaccount');
+  return;
+});
+
+//
+// ERRORS ROUTES AND CATCH ALL
+//
+
+app.get('/noaccount', (req, res) => {
+  res.render('urls_no_account');
+});
+
+app.get('/error400', (req, res) => {
+  res.render('urls_400');
+});
+
+app.get('/error403', (req, res) => {
+  res.render('urls_403');
 });
 
 app.get('*', (req, res) => {
   res.redirect('/login');
 });
+
 //
 //EDIT
 //
@@ -156,7 +194,7 @@ app.get('*', (req, res) => {
 app.post('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   let newLong = req.body.longURL;
-  urlDatabase[shortURL] = { longURL: newLong, userID: req.session.user_id};
+  urlDatabase[shortURL] = { longURL: newLong, userID: req.session.user_id };
   res.redirect('/urls');
 });
 
@@ -164,8 +202,11 @@ app.post('/urls/:shortURL/edit', (req, res) => {
   if (req.session.user_id) {
     const shortURL = req.params.shortURL;
     res.redirect(`/urls/${shortURL}`);
-  } else {
+    return;
+  }
+  if (!req.session.user_id) {
     res.redirect('/login');
+    return;
   }
 });
 
@@ -177,15 +218,17 @@ app.post('/urls/:shortURL/edit', (req, res) => {
 app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  const hashedPassword = bcrypt.hashSync(password, 10)
+  const hashedPassword = bcrypt.hashSync(password, 10);
   if (email === "" || password === "" || emailLookUp(email, users)) {
-    res.send('400 Bad Request');
-    // res.redirect('/register');
-  } else {
+    res.redirect('/error400');
+    return;
+  }
+  if (!req.session.user_id) {
     const id = generateRandomString();
-    users[id] = {id: id, email: email, password: hashedPassword};
+    users[id] = { id: id, email: email, password: hashedPassword };
     req.session.user_id = id;
     res.redirect('/urls');
+    return;
   }
 });
 
@@ -193,16 +236,20 @@ app.post('/register', (req, res) => {
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  const user = emailLookUp(email, users);
-  const id = user.id;
+  const id = emailLookUp(email, users);
+  if (!id) {
+    res.redirect('/error403');
+    return;
+  }
   const hashedPassword = users[id].password;
   if (emailLookUp(email, users) && bcrypt.compareSync(password, hashedPassword)) {
-    // res.cookie('user_id', id);
     req.session.user_id = id;
     res.redirect("/urls");
-  } else {
-    res.send('403 Forbidden Client');
-    res.redirect('/register');
+    return;
+  }
+  if (!emailLookUp(email, users) || !bcrypt.compareSync(password, hashedPassword)) {
+    res.redirect('/error403');
+    return;
   }
 });
 
@@ -210,13 +257,14 @@ app.post('/login', (req, res) => {
 app.post('/urls', (req, res) => {
   let shortURL = generateRandomString();
   let newLong = req.body.longURL;
-  urlDatabase[shortURL] = { longURL: newLong, userID: req.session.user_id};
+  urlDatabase[shortURL] = { longURL: newLong, userID: req.session.user_id };
   res.redirect(`/urls/${shortURL}`);
 });
 
+//Logout and clear cookies
 app.post('/logout', (req, res) => {
   req.session = null;
-  res.redirect('/login');
+  res.redirect('/urls');
 });
 
 //
@@ -225,11 +273,14 @@ app.post('/logout', (req, res) => {
 
 app.post('/urls/:shortURL/delete', (req, res) => {
   if (req.session.user_id) {
-    const {shortURL} = req.params;
+    const { shortURL } = req.params;
     delete urlDatabase[shortURL];
     res.redirect('/urls');
-  } else {
+    return;
+  }
+  if (!req.session.user_id) {
     res.redirect('/login');
+    return;
   }
 });
 

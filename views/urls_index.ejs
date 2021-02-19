@@ -28,11 +28,11 @@
           <% for(let url in urls) { %>
             <tr>
               <td>
-                <a href = <%= urls[url].longURL %> </a>
+                <a href=<%=urls[url].longURL %> </a>
                 <%= url %>
               </td>
-              <td>                              
-                  <%= urls[url].longURL %>
+              <td>
+                <%= urls[url].longURL %>
               </td>
               <td>
                 <form method="POST" action="/urls/<%= url %>/delete">
